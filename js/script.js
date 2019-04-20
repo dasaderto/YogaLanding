@@ -101,37 +101,86 @@ window.addEventListener('DOMContentLoaded', function(){
         success : "Спасибо за заявку, скоро мы с вами свяжемся",
         failure : "Что-то пошло не так..."
     };
+    let contactFormMessage = {
+        loading : "Загрузка...",
+        success : "Вскоре, наш агент свяжется с вами",
+        failure : "Что-то пошло не так..."
+    };
 
-    let form = document.querySelector('.main-form');
-    let input = form.getElementsByTagName('input');
+    let detailForm = document.querySelector('.main-form');
+    let detailFormInputs = detailForm.getElementsByTagName('input');
     let statusMessage = document.createElement('div');
 
     statusMessage.classList.add('status');
 
-    form.addEventListener('submit', function(e){
+    detailForm.addEventListener('submit', function(e){
         e.preventDefault();
-        form.appendChild(statusMessage);
+        detailForm.appendChild(statusMessage);
 
         let request = new XMLHttpRequest();
         request.open('POST', 'server.php');
         request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 
-        let formData = new FormData(form);
+        let formData = new FormData(detailForm);
+
+        request.send(formData);
+
+        request.addEventListener('readystatechange', function(){
+            let promise = new Promise((resolve, reject) => {
+                if(request.readyState < 4){
+                    statusMessage.innerHTML = message.loading;
+                }else if(request.readyState == 4 && request.status == 200){
+                    resolve(message.success);
+                }else{
+                    reject(message.failure);
+                }
+            });
+
+            promise.then(
+                result => {
+                    statusMessage.innerHTML = result;
+                },
+                error => {
+                    statusMessage.innerHTML = error;
+                }
+            );
+        });
+
+        for(let i=0; i < detailFormInputs.length; i++){
+            detailFormInputs[i].value = "";
+        }
+    });
+
+    let contactForm = document.querySelector('#form');
+    let contactFormInputs = contactForm.getElementsByTagName('input');
+    let contactStatusMessage = document.createElement('div');
+
+    contactStatusMessage.classList.add('status');
+
+    contactForm.addEventListener('submit', function(e){
+        e.preventDefault();
+        contactForm.appendChild(contactStatusMessage);
+
+        let request = new XMLHttpRequest();
+        request.open('POST', 'server.php');
+        request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+        let formData = new FormData(contactForm);
 
         request.send(formData);
 
         request.addEventListener('readystatechange', function(){
             if(request.readyState < 4){
-                statusMessage.innerHTML = message.loading;
+                contactStatusMessage.innerHTML = contactFormMessage.loading;
             }else if(request.readyState == 4 && request.status == 200){
-                statusMessage.innerHTML = message.success;
+                contactStatusMessage.innerHTML = contactFormMessage.success;
             }else{
-                statusMessage.innerHTML = message.failure;
+                contactStatusMessage.innerHTML = contactFormMessage.failure;
             }
         });
 
-        for(let i=0; i < input.length; i++){
-            input[i].value = "";
+        for(let i=0; i < contactFormInputs.length; i++){
+            contactFormInputs[i].value = "";
         }
     });
 });
